@@ -1,245 +1,218 @@
 
-import React, { useEffect } from 'react';
-import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { Order as OrderType } from '@/types/product';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { formatDate } from '@/utils/format';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
+import { ChevronLeft, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 
-const OrderDetailPage: React.FC = () => {
+const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
-  const navigate = useNavigate();
   
-  // Get order details from location state (if redirected from checkout)
-  // or use a mock order for demo purposes
-  const orderDetails = location.state?.orderDetails as OrderType | undefined;
-  
-  useEffect(() => {
-    // If we have order details from checkout, store in session storage
-    if (orderDetails) {
-      sessionStorage.setItem(`order-${id}`, JSON.stringify(orderDetails));
-    }
-  }, [id, orderDetails]);
-  
-  // Try to get order from session storage
-  const getOrderFromStorage = (): OrderType | null => {
-    const storedOrder = sessionStorage.getItem(`order-${id}`);
-    return storedOrder ? JSON.parse(storedOrder) : null;
-  };
-  
-  // Use order from state, session storage, or fall back to a mock order
-  const order = orderDetails || getOrderFromStorage() || {
+  // Mock order data - in a real app, this would come from an API
+  const order = {
     id: id || 'UNKNOWN',
-    items: [],
-    total: 57.85,
-    status: 'preparing' as OrderType['status'],
-    createdAt: new Date().toISOString(),
-    deliveryAddress: '123 Main St, San Francisco, CA 94122',
-    estimatedDelivery: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    date: '2024-05-15',
+    status: 'Shipped',
+    total: 149.97,
+    items: [
+      { id: 1, name: 'Wireless Headphones', price: 89.99, quantity: 1, image: '/placeholder.svg' },
+      { id: 2, name: 'Smartphone Case', price: 19.99, quantity: 3, image: '/placeholder.svg' },
+    ],
+    shipping: {
+      address: '123 Main St',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10001',
+      country: 'United States',
+    },
+    payment: {
+      method: 'Credit Card',
+      cardLast4: '4242',
+    },
+    timeline: [
+      { date: '2024-05-15 10:30 AM', status: 'Order Placed', description: 'Your order has been received' },
+      { date: '2024-05-15 11:45 AM', status: 'Payment Confirmed', description: 'Payment has been confirmed' },
+      { date: '2024-05-16 09:20 AM', status: 'Processing', description: 'Your order is being processed' },
+      { date: '2024-05-17 02:15 PM', status: 'Shipped', description: 'Your order has been shipped' },
+    ],
   };
-  
-  const getProgressPercent = (status: OrderType['status']) => {
-    switch(status) {
-      case 'pending': return 0;
-      case 'confirmed': return 25;
-      case 'preparing': return 50;
-      case 'out_for_delivery': return 75;
-      case 'delivered': return 100;
-      default: return 0;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Delivered':
+        return 'bg-green-100 text-green-800';
+      case 'Shipped':
+        return 'bg-purple-100 text-purple-800';
+      case 'Processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'Cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
     }
   };
-  
-  const progressPercent = getProgressPercent(order.status);
-  
-  // For demo purposes, using a placeholder image
-  const placeholderImage = `/placeholder.svg`;
-  
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Delivered':
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case 'Shipped':
+        return <Truck className="h-5 w-5 text-purple-600" />;
+      case 'Processing':
+        return <Package className="h-5 w-5 text-blue-600" />;
+      default:
+        return <Clock className="h-5 w-5 text-yellow-600" />;
+    }
+  };
+
   return (
     <Layout>
-      <div className="container px-4 py-8">
-        <Button 
-          variant="ghost" 
-          asChild 
-          className="mb-6"
-        >
-          <Link to="/orders">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Orders
-          </Link>
-        </Button>
-        
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Order #{order.id}</h1>
-            <p className="mt-1 text-muted-foreground">
-              Placed on {formatDate(order.createdAt)}
-            </p>
-          </div>
-          <OrderStatusBadge status={order.status} />
+      <div className="container px-4 py-8 md:px-6 md:py-12">
+        <div className="mb-6">
+          <Button variant="ghost" size="sm" asChild className="mb-4">
+            <Link to="/orders" className="flex items-center">
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Back to Orders
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold md:text-3xl">Order #{order.id}</h1>
+          <p className="text-muted-foreground">
+            Placed on {new Date(order.date).toLocaleDateString()}
+          </p>
         </div>
-        
-        {/* Order Progress */}
-        <div className="mb-10 rounded-lg border p-6">
-          <h2 className="mb-4 text-xl font-semibold">Order Status</h2>
-          
-          <div className="relative mb-8 h-2 rounded-full bg-muted">
-            <div 
-              className="absolute left-0 top-0 h-2 rounded-full bg-food-orange" 
-              style={{ width: `${progressPercent}%` }}
-            ></div>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-            <OrderProgressStep 
-              icon={<CheckCircle />}
-              title="Order Confirmed"
-              date={formatDate(order.createdAt)}
-              isActive={['confirmed', 'preparing', 'out_for_delivery', 'delivered'].includes(order.status)}
-            />
-            <OrderProgressStep 
-              icon={<Package />}
-              title="Preparing"
-              date={order.status === 'pending' ? 'Upcoming' : formatDate(new Date(+new Date(order.createdAt) + 2 * 60 * 60 * 1000).toISOString())}
-              isActive={['preparing', 'out_for_delivery', 'delivered'].includes(order.status)}
-            />
-            <OrderProgressStep 
-              icon={<Truck />}
-              title="Out for Delivery"
-              date={['pending', 'confirmed', 'preparing'].includes(order.status) ? 'Upcoming' : formatDate(new Date(+new Date(order.createdAt) + 4 * 60 * 60 * 1000).toISOString())}
-              isActive={['out_for_delivery', 'delivered'].includes(order.status)}
-            />
-            <OrderProgressStep 
-              icon={<CheckCircle />}
-              title="Delivered"
-              date={order.status === 'delivered' ? formatDate(order.estimatedDelivery || '') : 'Upcoming'}
-              isActive={order.status === 'delivered'}
-            />
-          </div>
-        </div>
-        
-        {/* Order Details */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div className="rounded-lg border p-6">
-              <h2 className="mb-4 text-xl font-semibold">Order Items</h2>
-              
-              {/* Use mock items for demo */}
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
-                    <img
-                      src={placeholderImage}
-                      alt="Product"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium">
-                      Artisan Sourdough Bread
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Quantity: 2
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="price-tag">$12.98</span>
-                  </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Order Status</CardTitle>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(order.status)}`}>
+                    {order.status}
+                  </span>
                 </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
-                    <img
-                      src={placeholderImage}
-                      alt="Product"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium">
-                      Organic Mixed Berry Box
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Quantity: 1
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="price-tag">$7.99</span>
-                  </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {order.timeline.map((event, index) => (
+                    <div key={index} className="flex items-start gap-4">
+                      <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full ${
+                        index === order.timeline.length - 1 
+                          ? 'bg-purple-100' 
+                          : 'bg-gray-100'
+                      }`}>
+                        {index === order.timeline.length - 1 
+                          ? getStatusIcon(event.status)
+                          : <div className="h-2 w-2 rounded-full bg-gray-400" />
+                        }
+                      </div>
+                      <div>
+                        <p className="font-medium">{event.status}</p>
+                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                        <p className="text-xs text-muted-foreground">{event.date}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
-                    <img
-                      src={placeholderImage}
-                      alt="Product"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium">
-                      Premium Chicken Stir-Fry Kit
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Quantity: 1
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="price-tag">$12.99</span>
-                  </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-md border bg-muted/50 overflow-hidden">
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{formatCurrency(item.price)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatCurrency(item.price * item.quantity)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          <div className="lg:col-span-1">
-            <div className="rounded-lg border p-6 space-y-6">
-              <div>
-                <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
+
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${order.total.toFixed(2)}</span>
+                    <span>{formatCurrency(order.total - 9.99)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>Free</span>
+                    <span>{formatCurrency(9.99)}</span>
                   </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-medium">
+                  <Separator />
+                  <div className="flex items-center justify-between font-medium">
                     <span>Total</span>
-                    <span>${order.total.toFixed(2)}</span>
+                    <span>{formatCurrency(order.total)}</span>
                   </div>
                 </div>
-              </div>
-              
-              <div>
-                <h3 className="mb-2 font-medium">Shipping Address</h3>
-                <p className="text-sm text-muted-foreground">
-                  {order.deliveryAddress}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  <p>{order.shipping.address}</p>
+                  <p>{order.shipping.city}, {order.shipping.state} {order.shipping.zipCode}</p>
+                  <p>{order.shipping.country}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Method</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{order.payment.method} ending in {order.payment.cardLast4}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  If you have any questions about your order, please contact our customer support.
                 </p>
-              </div>
-              
-              <div>
-                <h3 className="mb-2 font-medium">Estimated Delivery</h3>
-                <p className="text-sm text-muted-foreground">
-                  {order.estimatedDelivery 
-                    ? formatDate(order.estimatedDelivery) 
-                    : 'Not available'}
-                </p>
-              </div>
-              
-              <Button 
-                asChild 
-                className="w-full bg-food-orange hover:bg-food-orange/90"
-              >
-                <Link to="/products">
-                  Continue Shopping
-                </Link>
-              </Button>
-            </div>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -247,74 +220,4 @@ const OrderDetailPage: React.FC = () => {
   );
 };
 
-export default OrderDetailPage;
-
-// Order Status Badge Component
-const OrderStatusBadge: React.FC<{ status: OrderType['status'] }> = ({ status }) => {
-  let bgColor = '';
-  let textColor = '';
-  let label = '';
-  
-  switch (status) {
-    case 'pending':
-      bgColor = 'bg-yellow-100';
-      textColor = 'text-yellow-800';
-      label = 'Pending';
-      break;
-    case 'confirmed':
-      bgColor = 'bg-blue-100';
-      textColor = 'text-blue-800';
-      label = 'Confirmed';
-      break;
-    case 'preparing':
-      bgColor = 'bg-purple-100';
-      textColor = 'text-purple-800';
-      label = 'Preparing';
-      break;
-    case 'out_for_delivery':
-      bgColor = 'bg-food-lightOrange';
-      textColor = 'text-food-orange';
-      label = 'Out for Delivery';
-      break;
-    case 'delivered':
-      bgColor = 'bg-food-lightGreen';
-      textColor = 'text-food-green';
-      label = 'Delivered';
-      break;
-    default:
-      bgColor = 'bg-gray-100';
-      textColor = 'text-gray-800';
-      label = status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
-  }
-  
-  return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${bgColor} ${textColor}`}>
-      {label}
-    </span>
-  );
-};
-
-// Order Progress Step Component
-interface OrderProgressStepProps {
-  icon: React.ReactNode;
-  title: string;
-  date: string;
-  isActive: boolean;
-}
-
-const OrderProgressStep: React.FC<OrderProgressStepProps> = ({
-  icon,
-  title,
-  date,
-  isActive,
-}) => {
-  return (
-    <div className={`flex flex-col items-center text-center ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-      <div className={`mb-2 rounded-full p-2 ${isActive ? 'bg-food-orange text-white' : 'bg-muted'}`}>
-        {React.cloneElement(icon as React.ReactElement, { className: 'h-5 w-5' })}
-      </div>
-      <h3 className="text-sm font-medium">{title}</h3>
-      <p className="mt-1 text-xs">{date}</p>
-    </div>
-  );
-};
+export default OrderDetail;

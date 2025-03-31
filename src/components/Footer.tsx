@@ -1,8 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAdmin } from '@/hooks/useAdmin';
 
 const Footer: React.FC = () => {
+  const { isAdmin } = useAdmin();
+  
   return (
     <footer className="border-t bg-muted/50">
       <div className="container px-4 py-8 md:px-6 md:py-12">
@@ -56,9 +59,11 @@ const Footer: React.FC = () => {
               <li>
                 <Link to="/contact" className="hover:text-purple-500 transition-colors">Contact</Link>
               </li>
-              <li>
-                <Link to="/admin" className="hover:text-purple-500 transition-colors">Admin</Link>
-              </li>
+              {isAdmin && (
+                <li>
+                  <Link to="/admin" className="hover:text-purple-500 transition-colors">Admin</Link>
+                </li>
+              )}
             </ul>
           </div>
         </div>

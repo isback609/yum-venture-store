@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
+import { useAdmin } from '@/hooks/useAdmin';
 import { ShoppingCart, User, Menu, Search, Home } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar: React.FC = () => {
   const { totalItems } = useCart();
+  const { isAdmin } = useAdmin();
   const isMobile = useIsMobile();
 
   const NavLinks = () => (
@@ -27,9 +29,11 @@ const Navbar: React.FC = () => {
       <Link to="/orders" className="text-foreground hover:text-purple-500 transition-colors">
         My Orders
       </Link>
-      <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
-        Admin
-      </Link>
+      {isAdmin && (
+        <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
+          Admin
+        </Link>
+      )}
     </div>
   );
 
@@ -64,9 +68,11 @@ const Navbar: React.FC = () => {
                     <Link to="/orders" className="text-foreground hover:text-purple-500 transition-colors">
                       My Orders
                     </Link>
-                    <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
-                      Admin
-                    </Link>
+                    {isAdmin && (
+                      <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
+                        Admin
+                      </Link>
+                    )}
                   </div>
                 </div>
               </SheetContent>
