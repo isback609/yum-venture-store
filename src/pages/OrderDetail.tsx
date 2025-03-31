@@ -1,118 +1,245 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { format, formatDistanceToNow } from 'date-fns';
-import { Loader2, Truck } from 'lucide-react';
 
-import { Order } from '@/types/product';
-import { formatDate, formatCurrency } from '@/utils/format';
+import React, { useEffect } from 'react';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { Order as OrderType } from '@/types/product';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { formatDate } from '@/utils/format';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 
-const OrderDetailPage = () => {
+const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-
-  const { isLoading, error, data: order } = useQuery<Order>({
-    queryKey: ['order', id],
-    queryFn: async () => {
-      const res = await fetch(`/api/orders/${id}`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch order');
-      }
-      return res.json();
-    },
-  });
-
-  if (isLoading) return <Layout><div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin h-6 w-6" /></div></Layout>;
-  if (error) return <Layout><div className="flex justify-center items-center h-screen text-red-500">Error: {(error as Error).message}</div></Layout>;
-  if (!order) return <Layout><div className="flex justify-center items-center h-screen">Order not found</div></Layout>;
-
-  const deliveryDate = order.estimatedDelivery ? new Date(order.estimatedDelivery) : null;
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get order details from location state (if redirected from checkout)
+  // or use a mock order for demo purposes
+  const orderDetails = location.state?.orderDetails as OrderType | undefined;
+  
+  useEffect(() => {
+    // If we have order details from checkout, store in session storage
+    if (orderDetails) {
+      sessionStorage.setItem(`order-${id}`, JSON.stringify(orderDetails));
+    }
+  }, [id, orderDetails]);
+  
+  // Try to get order from session storage
+  const getOrderFromStorage = (): OrderType | null => {
+    const storedOrder = sessionStorage.getItem(`order-${id}`);
+    return storedOrder ? JSON.parse(storedOrder) : null;
+  };
+  
+  // Use order from state, session storage, or fall back to a mock order
+  const order = orderDetails || getOrderFromStorage() || {
+    id: id || 'UNKNOWN',
+    items: [],
+    total: 57.85,
+    status: 'preparing' as OrderType['status'],
+    createdAt: new Date().toISOString(),
+    deliveryAddress: '123 Main St, San Francisco, CA 94122',
+    estimatedDelivery: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+  
+  const getProgressPercent = (status: OrderType['status']) => {
+    switch(status) {
+      case 'pending': return 0;
+      case 'confirmed': return 25;
+      case 'preparing': return 50;
+      case 'out_for_delivery': return 75;
+      case 'delivered': return 100;
+      default: return 0;
+    }
+  };
+  
+  const progressPercent = getProgressPercent(order.status);
+  
+  // For demo purposes, using a placeholder image
+  const placeholderImage = `/placeholder.svg`;
+  
   return (
     <Layout>
-      <div className="container mx-auto mt-8 p-4">
-        <Link to="/orders" className="inline-block mb-4 text-blue-500 hover:underline">
-          ← Back to Orders
-        </Link>
-        <h1 className="text-2xl font-bold mb-4">Order Details</h1>
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Order Information</h2>
-            <p>Order ID: {order.id}</p>
-            <p>Order Date: {formatDate(order.createdAt)}</p>
-            <p>Delivery Address: {order.deliveryAddress}</p>
-            <div className="flex items-center mt-2">
-              Status:
-              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${
-                order.status === 'pending' ? 'bg-yellow-200 text-yellow-700' :
-                order.status === 'confirmed' ? 'bg-blue-200 text-blue-700' :
-                order.status === 'preparing' ? 'bg-gray-200 text-gray-700' :
-                order.status === 'out_for_delivery' ? 'bg-purple-200 text-purple-700 flex items-center' :
-                'bg-green-200 text-green-700'
-              }`}>
-                {
-                  (order.status || '').charAt(0).toUpperCase() + (order.status || '').slice(1).replace('_', ' ')
-                }
-                {order.status === 'out_for_delivery' && <Truck className="ml-1 w-4 h-4 inline-block" />}
-              </span>
-            </div>
-            {deliveryDate && (
-              <p>
-                Estimated Delivery:{' '}
-                {formatDistanceToNow(deliveryDate, { addSuffix: true })}
-              </p>
-            )}
-          </div>
-
+      <div className="container px-4 py-8">
+        <Button 
+          variant="ghost" 
+          asChild 
+          className="mb-6"
+        >
+          <Link to="/orders">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Orders
+          </Link>
+        </Button>
+        
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold mb-2">Order Items</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full leading-normal">
-                <thead>
-                  <tr>
-                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Quantity
-                    </th>
-                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Price
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item) => (
-                    <tr key={item.product.id}>
-                      <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <div className="flex items-center">
-                          <div className="ml-3">
-                            <p className="text-gray-900 whitespace-no-wrap">
-                              {item.product.name}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p className="text-gray-900 whitespace-no-wrap">{item.quantity}</p>
-                      </td>
-                      <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p className="text-gray-900 whitespace-no-wrap">
-                          {formatCurrency(item.product.price * item.quantity)}
-                        </p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <h1 className="text-3xl font-bold">Order #{order.id}</h1>
+            <p className="mt-1 text-muted-foreground">
+              Placed on {formatDate(order.createdAt)}
+            </p>
+          </div>
+          <OrderStatusBadge status={order.status} />
+        </div>
+        
+        {/* Order Progress */}
+        <div className="mb-10 rounded-lg border p-6">
+          <h2 className="mb-4 text-xl font-semibold">Order Status</h2>
+          
+          <div className="relative mb-8 h-2 rounded-full bg-muted">
+            <div 
+              className="absolute left-0 top-0 h-2 rounded-full bg-food-orange" 
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+            <OrderProgressStep 
+              icon={<CheckCircle />}
+              title="Order Confirmed"
+              date={formatDate(order.createdAt)}
+              isActive={['confirmed', 'preparing', 'out_for_delivery', 'delivered'].includes(order.status)}
+            />
+            <OrderProgressStep 
+              icon={<Package />}
+              title="Preparing"
+              date={order.status === 'pending' ? 'Upcoming' : formatDate(new Date(+new Date(order.createdAt) + 2 * 60 * 60 * 1000).toISOString())}
+              isActive={['preparing', 'out_for_delivery', 'delivered'].includes(order.status)}
+            />
+            <OrderProgressStep 
+              icon={<Truck />}
+              title="Out for Delivery"
+              date={['pending', 'confirmed', 'preparing'].includes(order.status) ? 'Upcoming' : formatDate(new Date(+new Date(order.createdAt) + 4 * 60 * 60 * 1000).toISOString())}
+              isActive={['out_for_delivery', 'delivered'].includes(order.status)}
+            />
+            <OrderProgressStep 
+              icon={<CheckCircle />}
+              title="Delivered"
+              date={order.status === 'delivered' ? formatDate(order.estimatedDelivery || '') : 'Upcoming'}
+              isActive={order.status === 'delivered'}
+            />
+          </div>
+        </div>
+        
+        {/* Order Details */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="rounded-lg border p-6">
+              <h2 className="mb-4 text-xl font-semibold">Order Items</h2>
+              
+              {/* Use mock items for demo */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
+                    <img
+                      src={placeholderImage}
+                      alt="Product"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium">
+                      Artisan Sourdough Bread
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Quantity: 2
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="price-tag">$12.98</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
+                    <img
+                      src={placeholderImage}
+                      alt="Product"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium">
+                      Organic Mixed Berry Box
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Quantity: 1
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="price-tag">$7.99</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
+                    <img
+                      src={placeholderImage}
+                      alt="Product"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium">
+                      Premium Chicken Stir-Fry Kit
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Quantity: 1
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="price-tag">$12.99</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">Total</h2>
-            <p className="text-gray-900">
-              {formatCurrency(order.total)}
-            </p>
+          
+          <div className="lg:col-span-1">
+            <div className="rounded-lg border p-6 space-y-6">
+              <div>
+                <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>${order.total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span>Free</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between font-medium">
+                    <span>Total</span>
+                    <span>${order.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="mb-2 font-medium">Shipping Address</h3>
+                <p className="text-sm text-muted-foreground">
+                  {order.deliveryAddress}
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="mb-2 font-medium">Estimated Delivery</h3>
+                <p className="text-sm text-muted-foreground">
+                  {order.estimatedDelivery 
+                    ? formatDate(order.estimatedDelivery) 
+                    : 'Not available'}
+                </p>
+              </div>
+              
+              <Button 
+                asChild 
+                className="w-full bg-food-orange hover:bg-food-orange/90"
+              >
+                <Link to="/products">
+                  Continue Shopping
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -121,3 +248,73 @@ const OrderDetailPage = () => {
 };
 
 export default OrderDetailPage;
+
+// Order Status Badge Component
+const OrderStatusBadge: React.FC<{ status: OrderType['status'] }> = ({ status }) => {
+  let bgColor = '';
+  let textColor = '';
+  let label = '';
+  
+  switch (status) {
+    case 'pending':
+      bgColor = 'bg-yellow-100';
+      textColor = 'text-yellow-800';
+      label = 'Pending';
+      break;
+    case 'confirmed':
+      bgColor = 'bg-blue-100';
+      textColor = 'text-blue-800';
+      label = 'Confirmed';
+      break;
+    case 'preparing':
+      bgColor = 'bg-purple-100';
+      textColor = 'text-purple-800';
+      label = 'Preparing';
+      break;
+    case 'out_for_delivery':
+      bgColor = 'bg-food-lightOrange';
+      textColor = 'text-food-orange';
+      label = 'Out for Delivery';
+      break;
+    case 'delivered':
+      bgColor = 'bg-food-lightGreen';
+      textColor = 'text-food-green';
+      label = 'Delivered';
+      break;
+    default:
+      bgColor = 'bg-gray-100';
+      textColor = 'text-gray-800';
+      label = status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
+  }
+  
+  return (
+    <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${bgColor} ${textColor}`}>
+      {label}
+    </span>
+  );
+};
+
+// Order Progress Step Component
+interface OrderProgressStepProps {
+  icon: React.ReactNode;
+  title: string;
+  date: string;
+  isActive: boolean;
+}
+
+const OrderProgressStep: React.FC<OrderProgressStepProps> = ({
+  icon,
+  title,
+  date,
+  isActive,
+}) => {
+  return (
+    <div className={`flex flex-col items-center text-center ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+      <div className={`mb-2 rounded-full p-2 ${isActive ? 'bg-food-orange text-white' : 'bg-muted'}`}>
+        {React.cloneElement(icon as React.ReactElement, { className: 'h-5 w-5' })}
+      </div>
+      <h3 className="text-sm font-medium">{title}</h3>
+      <p className="mt-1 text-xs">{date}</p>
+    </div>
+  );
+};
