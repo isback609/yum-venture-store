@@ -9,27 +9,27 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold">
-              <span className="text-food-orange">Yum</span>
-              <span className="text-food-green">Venture</span>
+              <span className="text-purple-600">Dhiraj</span>
+              <span className="text-purple-800">Store</span>
             </h3>
             <p className="text-sm text-muted-foreground">
-              Delivering the freshest, most delicious food straight to your door.
+              Quality products at affordable prices delivered to your door.
             </p>
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">Shop</h3>
             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/products" className="hover:text-food-orange transition-colors">All Products</Link>
+                <Link to="/products" className="hover:text-purple-500 transition-colors">All Products</Link>
               </li>
               <li>
-                <Link to="/products?category=fresh" className="hover:text-food-orange transition-colors">Fresh Produce</Link>
+                <Link to="/products?category=electronics" className="hover:text-purple-500 transition-colors">Electronics</Link>
               </li>
               <li>
-                <Link to="/products?category=bakery" className="hover:text-food-orange transition-colors">Bakery</Link>
+                <Link to="/products?category=clothing" className="hover:text-purple-500 transition-colors">Clothing</Link>
               </li>
               <li>
-                <Link to="/products?category=meals" className="hover:text-food-orange transition-colors">Ready Meals</Link>
+                <Link to="/products?category=home" className="hover:text-purple-500 transition-colors">Home Goods</Link>
               </li>
             </ul>
           </div>
@@ -37,13 +37,13 @@ const Footer: React.FC = () => {
             <h3 className="text-sm font-semibold">Account</h3>
             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/account" className="hover:text-food-orange transition-colors">My Account</Link>
+                <Link to="/account" className="hover:text-purple-500 transition-colors">My Account</Link>
               </li>
               <li>
-                <Link to="/orders" className="hover:text-food-orange transition-colors">Orders</Link>
+                <Link to="/orders" className="hover:text-purple-500 transition-colors">Orders</Link>
               </li>
               <li>
-                <Link to="/cart" className="hover:text-food-orange transition-colors">Cart</Link>
+                <Link to="/cart" className="hover:text-purple-500 transition-colors">Cart</Link>
               </li>
             </ul>
           </div>
@@ -51,19 +51,19 @@ const Footer: React.FC = () => {
             <h3 className="text-sm font-semibold">Info</h3>
             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
               <li>
-                <Link to="/about" className="hover:text-food-orange transition-colors">About Us</Link>
+                <Link to="/about" className="hover:text-purple-500 transition-colors">About Us</Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-food-orange transition-colors">Contact</Link>
+                <Link to="/contact" className="hover:text-purple-500 transition-colors">Contact</Link>
               </li>
               <li>
-                <Link to="/faq" className="hover:text-food-orange transition-colors">FAQ</Link>
+                <Link to="/admin" className="hover:text-purple-500 transition-colors">Admin</Link>
               </li>
             </ul>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>© 2024 YumVenture. All rights reserved.</p>
+          <p>© 2024 Dhiraj Store. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -15,17 +15,20 @@ const Navbar: React.FC = () => {
 
   const NavLinks = () => (
     <div className="flex items-center gap-6">
-      <Link to="/" className="text-foreground hover:text-food-orange transition-colors">
+      <Link to="/" className="text-foreground hover:text-purple-500 transition-colors">
         Home
       </Link>
-      <Link to="/products" className="text-foreground hover:text-food-orange transition-colors">
+      <Link to="/products" className="text-foreground hover:text-purple-500 transition-colors">
         Products
       </Link>
-      <Link to="/about" className="text-foreground hover:text-food-orange transition-colors">
+      <Link to="/about" className="text-foreground hover:text-purple-500 transition-colors">
         About
       </Link>
-      <Link to="/orders" className="text-foreground hover:text-food-orange transition-colors">
+      <Link to="/orders" className="text-foreground hover:text-purple-500 transition-colors">
         My Orders
+      </Link>
+      <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
+        Admin
       </Link>
     </div>
   );
@@ -45,21 +48,24 @@ const Navbar: React.FC = () => {
               <SheetContent side="left" className="w-[240px] md:w-[300px]">
                 <div className="flex flex-col gap-6 py-4">
                   <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-                    <Home className="h-5 w-5 text-food-orange" />
-                    <span>YumVenture</span>
+                    <Home className="h-5 w-5 text-purple-500" />
+                    <span>Dhiraj Store</span>
                   </Link>
                   <div className="flex flex-col gap-4">
-                    <Link to="/" className="text-foreground hover:text-food-orange transition-colors">
+                    <Link to="/" className="text-foreground hover:text-purple-500 transition-colors">
                       Home
                     </Link>
-                    <Link to="/products" className="text-foreground hover:text-food-orange transition-colors">
+                    <Link to="/products" className="text-foreground hover:text-purple-500 transition-colors">
                       Products
                     </Link>
-                    <Link to="/about" className="text-foreground hover:text-food-orange transition-colors">
+                    <Link to="/about" className="text-foreground hover:text-purple-500 transition-colors">
                       About
                     </Link>
-                    <Link to="/orders" className="text-foreground hover:text-food-orange transition-colors">
+                    <Link to="/orders" className="text-foreground hover:text-purple-500 transition-colors">
                       My Orders
+                    </Link>
+                    <Link to="/admin" className="text-foreground hover:text-purple-500 transition-colors">
+                      Admin
                     </Link>
                   </div>
                 </div>
@@ -67,8 +73,8 @@ const Navbar: React.FC = () => {
             </Sheet>
           )}
           <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-            <span className="text-food-orange">Yum</span>
-            <span className="text-food-green">Venture</span>
+            <span className="text-purple-600">Dhiraj</span>
+            <span className="text-purple-800">Store</span>
           </Link>
         </div>
         {!isMobile && <NavLinks />}
@@ -101,10 +107,10 @@ const Navbar: React.FC = () => {
             <Link to="/cart">
               <ShoppingCart className={cn(
                 "h-5 w-5", 
-                totalItems > 0 && "text-food-orange"
+                totalItems > 0 && "text-purple-500"
               )} />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-food-orange text-[10px] font-medium text-white animate-cart-bounce">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[10px] font-medium text-white animate-cart-bounce">
                   {totalItems}
                 </span>
               )}
